@@ -10,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 @ExtendWith(MockitoExtension::class)
 internal class SearchServiceTest {
 
-    lateinit var subject: SearchService;
+    lateinit var subject: SearchService
 
     @BeforeEach
     fun setup() {
@@ -18,8 +18,13 @@ internal class SearchServiceTest {
     }
 
     @Test
-    fun `search finds 3 items`() {
+    fun `search without name param finds 3 items`() {
         assertNotNull(subject.search())
         assertEquals(3, subject.search().size)
+    }
+
+    @Test
+    fun `search with name param finds 1 item`() {
+        assertEquals(1, subject.search("screw").size)
     }
 }

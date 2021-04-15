@@ -4,9 +4,10 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity.ok
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
 
 @RestController
 class SearchController(val searchService: SearchService) {
     @GetMapping(path = ["items"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun search() = ok(searchService.search())
+    fun search(@RequestParam(required = false) name: String?) = ok(searchService.search(name))
 }
