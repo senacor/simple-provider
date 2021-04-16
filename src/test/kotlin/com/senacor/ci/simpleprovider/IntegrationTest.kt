@@ -10,6 +10,6 @@ import kotlin.annotation.AnnotationTarget.CLASS
 @Retention(RUNTIME)
 @Target(CLASS)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-@ContextConfiguration(classes = [SimpleProviderApplication::class])
+@ContextConfiguration(classes = [SimpleProviderApp::class])
 @ActiveProfiles("it")
 annotation class IntegrationTest
