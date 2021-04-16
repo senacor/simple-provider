@@ -1,0 +1,65 @@
+name: ci
+
+on: push
+
+env:
+  GROUP: senacor
+  COMMIT_SHA: ${{ github.sha }}
+  REPO: simple-provider
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build + verify
+        run: mvn -B verify
+
+  docker:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    env:
+      PUSH_DOCKER_IMAGE: true
+      DOCKER_NAME: ghcr.io/${{ github.repository }}
+      DOCKER_REGISTRY: ghcr.io
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Package
+        run: mvn -B package -DskipTests -DskipITs
+
+      - name: "Docker: Set up QEMU"
+        uses: docker/setup-qemu-action@v1
+
+      - name: "Docker: Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v1
+
+      - name: "Docker: Login to Container Registry"
+        uses: docker/login-action@v1
+        if: env.PUSH_DOCKER_IMAGE == 'true'
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ${{ env.DOCKER_REGISTRY }}
+
+      - name: "Docker: Build and push to Container Registry"
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          tags: |
+            ${{ env.DOCKER_NAME }}:${{ env.COMMIT_SHA }}
+          push: ${{ env.PUSH_DOCKER_IMAGE }}
