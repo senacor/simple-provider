@@ -4,7 +4,6 @@ on: push
 
 env:
   GROUP: senacor
-  COMMIT_SHA: ${{ github.sha }}
   REPO: simple-provider
 
 jobs:
@@ -28,13 +27,33 @@ jobs:
       - name: Build + verify
         run: mvn -B verify
 
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Run Integration tests
+        run: mvn integration-test
+
   docker:
     needs:
       - test
+      - integration-test
     runs-on: ubuntu-latest
     env:
       PUSH_DOCKER_IMAGE: true
-      DOCKER_NAME: ghcr.io/${{ github.repository }}
       DOCKER_REGISTRY: ghcr.io
     steps:
       - uses: actions/checkout@v2
@@ -61,5 +80,23 @@ jobs:
         with:
           context: .
           tags: |
-            ${{ env.DOCKER_NAME }}:${{ env.COMMIT_SHA }}
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
           push: ${{ env.PUSH_DOCKER_IMAGE }}
+
+  postman-test:
+    needs:
+      - docker
+    name: postman test
+    runs-on: ubuntu-latest
+    services:
+      test-service:
+        image: ghcr.io/${{ github.repository }}:${{ github.sha }}
+        ports:
+          - 8080:8080
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - run: npm install newman -g
+      - run: newman run postman/postman_collection.json
