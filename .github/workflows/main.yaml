@@ -124,12 +124,3 @@ jobs:
              --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
              --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
            kubectl apply -f rendered/
-
-           LOAD_BALANCER_URL=$(
-             kubectl get service \
-               --output json \
-               --namespace "${SERVICE_NAME}" \
-               "${SERVICE_NAME}" \
-               | jq -r '.status.loadBalancer.ingress[].hostname'
-             )
-           echo "Load balancer URL is: http://${LOAD_BALANCER_URL}"
