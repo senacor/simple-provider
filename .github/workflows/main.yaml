@@ -5,7 +5,7 @@ on: push
 env:
   GROUP: senacor
   COMMIT_SHA: ${{ github.sha }}
-  SERVICE_NAME: ${{ github.repository }}
+  SERVICE_NAME: simple-provider
   DOCKER_NAME: ghcr.io/${{ github.repository }}
   DOCKER_REGISTRY: ghcr.io
 
