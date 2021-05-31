@@ -69,7 +69,7 @@ jobs:
       SONAR_TESTS: src/test/kotlin
       SONAR_SOURCES: src/main/kotlin
       SONAR_EXCLUSIONS: "**/model/**"
-      SONAR_URL: "Some URL"
+      SONAR_URL: ${{ env.SONAR_URL }}
       SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
       COMMIT_BRANCH: ${{ github.ref }}
       COMMIT_SHA: ${{ github.sha }}
