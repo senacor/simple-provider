@@ -4,10 +4,7 @@ on: push
 
 env:
   GROUP: senacor
-  COMMIT_SHA: ${{ github.sha }}
   REPO: simple-provider
-  DOCKER_NAME: ghcr.io/${{ github.repository }}
-  DOCKER_IMAGE_NAME: ${{ env.DOCKER_NAME }}:${{ env.COMMIT_SHA }}
 
 jobs:
   test:
@@ -84,7 +81,7 @@ jobs:
         with:
           context: .
           tags: |
-            ${{ env.DOCKER_IMAGE_NAME }}
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
           push: ${{ env.PUSH_DOCKER_IMAGE }}
 
   postman-test:
@@ -94,7 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       test-service:
-        image: ${{ env.DOCKER_IMAGE_NAME }}
+        image: ghcr.io/${{ github.repository }}:${{ github.sha }}
         ports:
           - 8080:8080
     steps:
