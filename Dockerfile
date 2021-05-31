@@ -8,4 +8,4 @@ COPY launch.sh /app/
 EXPOSE 8080
 
 WORKDIR /app
-CMD ["bash", "launch.sh"]
+CMD ["sh", "launch.sh"]
