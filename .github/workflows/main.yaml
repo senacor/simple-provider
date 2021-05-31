@@ -5,6 +5,8 @@ on: push
 env:
   GROUP: senacor
   REPO: simple-provider
+  DOCKER_NAME: ghcr.io/${{ github.repository }}
+  DOCKER_REGISTRY: ghcr.io
 
 jobs:
   test:
@@ -54,7 +56,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PUSH_DOCKER_IMAGE: true
-      DOCKER_REGISTRY: ghcr.io
     steps:
       - uses: actions/checkout@v2
 
@@ -100,3 +101,16 @@ jobs:
           node-version: 14
       - run: npm install newman -g
       - run: newman run postman/postman_collection.json
+
+  deploy:
+    needs:
+      - docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: render
+        run: deployment/render.sh
+
+      - name: debug
+        run: cat rendered/*
