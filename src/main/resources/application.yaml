@@ -4,19 +4,14 @@ spring:
     banner-mode: off
 
   datasource:
-    url: ${DATABASE_URL:jdbc:oracle:thin:@//aopdbd05.zit.commerzbank.com:1521/AOPDV02}
-    username: 
-    password:
-    #driver-class-name: 
+    url: jdbc:postgresql://localhost:5432/
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     show-sql: true
     properties.hibernate.format_sql: true
     hibernate:
-      ddl-auto: drop-create
-
-
-
-
-
+      generated: drop-and-create
   

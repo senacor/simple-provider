@@ -11,5 +11,5 @@ import org.springframework.web.bind.annotation.RequestParam
 @CrossOrigin("*")
 class SearchController(val searchService: SearchService) {
     @GetMapping(path = ["items"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun search(@RequestParam(required = false) name: String?) = ok(searchService.search(name))
+    fun search(@RequestParam(required = false) name: String) = ok(searchService.search(name))
 }

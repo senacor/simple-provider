@@ -1,13 +1,11 @@
 
 package com.senacor.ci.simpleprovider.bo
 
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import javax.persistence.Column
-import javax.persistence.Entity
+import javax.persistence.*
 import javax.persistence.EnumType.STRING
-import javax.persistence.Enumerated
-import javax.persistence.Table
 
 /*
 @MappedSuperclass
@@ -31,13 +29,31 @@ abstract class AbstractVersionedBO {
 
 @Entity
 @Table(name = "ITEM")
-class Item() : AbstractVersionedBO() {
+class Item() {
+
+    @Id
+    @GeneratedValue(generator = "idSequence")
+    @Column(name = "ID")
+    var id: Long = 0
 
     @Column(name = "NAME")
     lateinit var name: String
-    
-    constructor(name: String,
-                ) : this() {
+
+    @Column(name = "PRICE")
+    lateinit var price: BigDecimal
+
+    @Column(name = "AVAILABLE")
+    var available: Int = 0
+
+    constructor(
+            id: Long,
+            name: String,
+            price: BigDecimal,
+            available: Int
+    ) : this() {
+        this.id = id
         this.name = name
+        this.price = price
+        this.available = available
     }
 }
