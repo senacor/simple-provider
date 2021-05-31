@@ -1,0 +1,16 @@
+version: "3.7"
+services:
+  application:
+    build: .
+    ports:
+      - 8080:8080
+  
+  postman_test:
+    image: postman/newman
+    command:
+      run postman_collection.json
+        -r html,cli
+        --reporter-html-export reports/Postman.html
+        --reporter-html-template reports/templates/customTemplate.hbs
+    volumes:
+      - ./postman:/etc/newman
