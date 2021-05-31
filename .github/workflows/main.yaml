@@ -89,8 +89,11 @@ jobs:
       - docker
     name: postman test
     runs-on: ubuntu-latest
-    container:
-      image: ${{ env.DOCKER_NAME }}:${{ env.COMMIT_SHA }}
+    services:
+      test-service:
+        image: ghcr.io/senacor/simple-provider:858837023ea0a0a8be19d40712392e9ef4b91c62
+        ports:
+          - 8080:8080
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
