@@ -128,8 +128,8 @@ jobs:
            LOAD_BALANCER_URL=$(
              kubectl get service \
                --output json \
-               --namespace simple-provider \
-               simple-provider \
+               --namespace "${SERVICE_NAME}" \
+               "${SERVICE_NAME}" \
                | jq -r '.status.loadBalancer.ingress[].hostname'
              )
            echo "Load balancer URL is: http://${LOAD_BALANCER_URL}"
