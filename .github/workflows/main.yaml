@@ -7,6 +7,7 @@ env:
   COMMIT_SHA: ${{ github.sha }}
   REPO: simple-provider
   DOCKER_NAME: ghcr.io/${{ github.repository }}
+  DOCKER_IMAGE_NAME: ${{ env.DOCKER_NAME }}:${{ env.COMMIT_SHA }}
 
 jobs:
   test:
@@ -50,8 +51,10 @@ jobs:
         run: mvn integration-test
 
   docker:
-    needs:
-      - test
+    # enable this again
+    # needs:
+    #   - test
+    #   - integration-test
     runs-on: ubuntu-latest
     env:
       PUSH_DOCKER_IMAGE: true
@@ -81,7 +84,7 @@ jobs:
         with:
           context: .
           tags: |
-            ${{ env.DOCKER_NAME }}:${{ env.COMMIT_SHA }}
+            ${{ env.DOCKER_IMAGE_NAME }}
           push: ${{ env.PUSH_DOCKER_IMAGE }}
 
   postman-test:
@@ -91,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       test-service:
-        image: ghcr.io/senacor/simple-provider:858837023ea0a0a8be19d40712392e9ef4b91c62
+        image: ${{ env.DOCKER_IMAGE_NAME }}
         ports:
           - 8080:8080
     steps:
