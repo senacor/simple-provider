@@ -8,5 +8,8 @@ import org.springframework.context.annotation.Configuration
 class ServiceConfiguration {
 
     @Bean
-    fun searchService() = SearchService()
+    fun ItemRepository() = ItemRepository()
+
+    @Bean
+    fun searchService(itemRepository: ItemRepository) = SearchService(itemRepository)
 }
