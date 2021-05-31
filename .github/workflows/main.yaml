@@ -81,14 +81,14 @@ jobs:
           curl -sSL "https://nodejs.org/download/release/v13.2.0/$NODE_RELEASE.tar.gz" | tar xzv
           mvn verify sonar:sonar  \
           -Dsonar.nodejs.executable=$NODE_RELEASE/bin/node \
-          -Dsonar.host.url=${{ SONAR_URL }} -Dsonar.login=${{ SONAR_LOGIN }} \
+          -Dsonar.host.url=${{ env.SONAR_URL }} -Dsonar.login=${{ env.SONAR_LOGIN }} \
           -Dsonar.javascript.lcov.reportPaths=target/js-coverage/lcov.info \
-          -Dsonar.sources=${{ SONAR_SOURCES }} \
-          -Dsonar.tests=${{ SONAR_TESTS }} \
-          -Dsonar.exclusions=${{ SONAR_EXCLUSIONS }} \
-          -Dsonar.gitlab.project_id=${{ REPO }}\
+          -Dsonar.sources=${{ env.SONAR_SOURCES }} \
+          -Dsonar.tests=${{ env.SONAR_TESTS }} \
+          -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }} \
+          -Dsonar.gitlab.project_id=${{ env.REPO }}\
           -Dsonar.gitlab.commit_sha=${{ github.sha }} \
-          -Dsonar.gitlab.ref_name=${{ COMMIT_BRANCH }} \
+          -Dsonar.gitlab.ref_name=${{ env.COMMIT_BRANCH }} \
           -Dsonar.gitlab.json.mode=CODECLIMATE \
           -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html \
           -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml \
