@@ -9,7 +9,7 @@ metadata:
 spec:
   selector:
     app: "${SERVICE_NAME}"
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - name: http-app
       port: 80
