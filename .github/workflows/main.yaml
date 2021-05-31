@@ -6,6 +6,7 @@ env:
   GROUP: senacor
   COMMIT_SHA: ${{ github.sha }}
   REPO: simple-provider
+  DOCKER_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   test:
@@ -54,7 +55,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PUSH_DOCKER_IMAGE: true
-      DOCKER_NAME: ghcr.io/${{ github.repository }}
       DOCKER_REGISTRY: ghcr.io
     steps:
       - uses: actions/checkout@v2
