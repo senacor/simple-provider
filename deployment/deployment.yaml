@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "simple-provider"
+  namespace: "simple-provider"
+  labels:
+    app: "simple-provider"
+    version: "1.0.0"
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: "simple-provider"
+  template:
+    metadata:
+      labels:
+        app: "simple-provider"
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: "simple-provider"
+          image: "${DOCKER_NAME}:${COMMIT_SHA}"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 250Mi
+            requests:
+              cpu: 200m
+              memory: 150Mi
+          ports:
+            - name: http-app
+              containerPort: 8080
+          securityContext:
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            privileged: false
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+

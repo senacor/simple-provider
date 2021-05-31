@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "simple-provider"
+  namespace: "simple-provider"
+  labels:
+    app: "simple-provider"
+    version: "1.0.0"
+spec:
+  selector:
+    app: "simple-provider"
+  type: LoadBalancer
+  ports:
+    - name: http-app
+      port: 80
+      targetPort: 8080
