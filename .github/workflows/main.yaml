@@ -48,10 +48,9 @@ jobs:
         run: mvn integration-test
 
   docker:
-    # enable this again
-    # needs:
-    #   - test
-    #   - integration-test
+    needs:
+      - test
+      - integration-test
     runs-on: ubuntu-latest
     env:
       PUSH_DOCKER_IMAGE: true
