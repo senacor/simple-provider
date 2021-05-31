@@ -85,6 +85,7 @@ jobs:
           -Dsonar.host.url=${{ env.SONAR_URL }} -Dsonar.login=${{ env.SONAR_LOGIN }} \
           -Dsonar.javascript.lcov.reportPaths=target/js-coverage/lcov.info \
           -Dsonar.sources=${{ env.SONAR_SOURCES }} \
+          -Dsonar.projectKey=simple-provide \
           -Dsonar.tests=${{ env.SONAR_TESTS }} \
           -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }} \
           -Dsonar.gitlab.project_id=${{ env.REPO }}\
