@@ -6,7 +6,6 @@ env:
   GROUP: senacor
   COMMIT_SHA: ${{ github.sha }}
   REPO: simple-provider
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -63,3 +62,34 @@ jobs:
           tags: |
             ${{ env.DOCKER_NAME }}:${{ env.COMMIT_SHA }}
           push: ${{ env.PUSH_DOCKER_IMAGE }}
+
+  quality-gates:
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TESTS: src/test/kotlin
+      SONAR_SOURCES: src/main/kotlin
+      SONAR_EXCLUSIONS: "**/model/**"
+      SONAR_URL: "Some URL"
+      SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
+      COMMIT_BRANCH: ${{ github.ref }}
+      COMMIT_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: sonar static analiysis
+        continue-on-error: true
+        run: |
+          curl -sSL "https://nodejs.org/download/release/v13.2.0/$NODE_RELEASE.tar.gz" | tar xzv
+          mvn verify sonar:sonar  \
+          -Dsonar.nodejs.executable=$NODE_RELEASE/bin/node \
+          -Dsonar.host.url=${{ SONAR_URL }} -Dsonar.login=${{ SONAR_LOGIN }} \
+          -Dsonar.javascript.lcov.reportPaths=target/js-coverage/lcov.info \
+          -Dsonar.sources=${{ SONAR_SOURCES }} \
+          -Dsonar.tests=${{ SONAR_TESTS }} \
+          -Dsonar.exclusions=${{ SONAR_EXCLUSIONS }} \
+          -Dsonar.gitlab.project_id=${{ REPO }}\
+          -Dsonar.gitlab.commit_sha=${{ github.sha }} \
+          -Dsonar.gitlab.ref_name=${{ COMMIT_BRANCH }} \
+          -Dsonar.gitlab.json.mode=CODECLIMATE \
+          -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html \
+          -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml \
+          -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json
