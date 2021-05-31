@@ -11,5 +11,5 @@ import java.util.*
 
 @Repository
 interface ItemRepository : JpaRepository<Item, Long> {
-    fun findAllByNameStartsWith(name: String): List<Item>;
+    fun findAllByNameStartsWith(name: String?): List<Item>;
 }

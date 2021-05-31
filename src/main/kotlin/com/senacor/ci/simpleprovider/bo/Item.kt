@@ -28,21 +28,21 @@ abstract class AbstractVersionedBO {
 */
 
 @Entity
-@Table(name = "ITEM")
+@Table(name = "items")
 class Item() {
 
     @Id
     @GeneratedValue(generator = "idSequence")
-    @Column(name = "ID")
+    @Column(name = "id")
     var id: Long = 0
 
-    @Column(name = "NAME")
+    @Column(name = "name")
     lateinit var name: String
 
-    @Column(name = "PRICE")
+    @Column(name = "price")
     lateinit var price: BigDecimal
 
-    @Column(name = "AVAILABLE")
+    @Column(name = "available")
     var available: Int = 0
 
     constructor(

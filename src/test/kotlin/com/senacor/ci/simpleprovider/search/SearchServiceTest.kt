@@ -28,9 +28,10 @@ internal class SearchServiceTest {
 
     @Test
     fun `search without name param finds 3 items`() {
-        Mockito.`when`(itemRepository.findAllByNameStartsWith("test")).thenReturn(listOf(Item(0, "test", BigDecimal(1), 1)))
+        var item: Item = Item(0, "test", BigDecimal(1), 1)
+        Mockito.`when`(itemRepository.findAllByNameStartsWith("test")).thenReturn(listOf(item))
 
-        assertNotNull(searchService.search(""))
-        assertEquals(1, searchService.search(""))
+        assertNotNull(searchService.search("test"))
+        assertEquals(listOf(item), searchService.search("test"))
     }
 }
