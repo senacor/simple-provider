@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "simple-provider"
-  namespace: "simple-provider"
+  name: "${SERVICE_NAME}"
+  namespace: "${SERVICE_NAME}"
   labels:
-    app: "simple-provider"
-    version: "1.0.0"
+    app: "${SERVICE_NAME}"
+    version: "${COMMIT_SHA}"
 spec:
-  replicas: 1
+  replicas: 2
   strategy:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: "simple-provider"
+      app: "${SERVICE_NAME}"
   template:
     metadata:
       labels:
-        app: "simple-provider"
-        version: "1.0.0"
+        app: "${SERVICE_NAME}"
+        version: "${COMMIT_SHA}"
     spec:
       containers:
-        - name: "simple-provider"
+        - name: "${SERVICE_NAME}"
           image: "${DOCKER_NAME}:${COMMIT_SHA}"
           resources:
             limits:
@@ -43,4 +43,3 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
-
