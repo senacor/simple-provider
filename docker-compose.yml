@@ -4,3 +4,14 @@ services:
     build: .
     ports:
       - 8080:8080
+
+  postgres:
+    image: postgres:13.3
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
+    ports:
+      - 5432:5432
+    volumes:
+      - ${PWD}/src/test/resources/sql:/docker-entrypoint-initdb.d:ro
