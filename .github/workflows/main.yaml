@@ -103,7 +103,7 @@ jobs:
           cd cicd-doc-repository
           ls
           git clone https://github.com/senacor/cicd-doc-repository.git docs
-          cp ./* docs
+          cp ./*.html docs
           cd docs
           git push origin master
 
