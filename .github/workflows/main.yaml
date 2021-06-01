@@ -223,7 +223,7 @@ jobs:
   image-scan:
     runs-on: ubuntu-latest
     env:
-      ANCHORE_CLI_USER: ${{ secrets.ANCHORE_CLI_USER }
+      ANCHORE_CLI_USER: ${{ secrets.ANCHORE_CLI_USER }}
       ANCHORE_CLI_USER_PASSWORD: ${{ secrets.ANCHORE_CLI_USER_PASSWORD }}
       ANCHORE_HOST: ${{ secrets.ANCHORE_HOST }}
     steps:
