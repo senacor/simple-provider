@@ -98,7 +98,7 @@ jobs:
       - name: push docs
         run: |
           mkdir docs
-          cp target/generated-sources/openapi/.openapi-generator/* docs
+          cp target/generated-sources/openapi/* docs
           git config --global user.email ${{ secrets.EMAIL }}
           git config --global user.name ${{ secrets.USERNAME }}
           git remote update
