@@ -32,6 +32,9 @@ spec:
           ports:
             - name: http-app
               containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: postgres-user
           securityContext:
             runAsUser: 1000
             readOnlyRootFilesystem: true
