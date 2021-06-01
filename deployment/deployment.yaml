@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "${SERVICE_NAME}"
+  namespace: "${SERVICE_NAME}"
+  labels:
+    app: "${SERVICE_NAME}"
+    version: "${COMMIT_SHA}"
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: "${SERVICE_NAME}"
+  template:
+    metadata:
+      labels:
+        app: "${SERVICE_NAME}"
+        version: "${COMMIT_SHA}"
+    spec:
+      containers:
+        - name: "${SERVICE_NAME}"
+          image: "${DOCKER_NAME}:${COMMIT_SHA}"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 250Mi
+            requests:
+              cpu: 200m
+              memory: 150Mi
+          ports:
+            - name: http-app
+              containerPort: 8080
+          securityContext:
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            privileged: false
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
