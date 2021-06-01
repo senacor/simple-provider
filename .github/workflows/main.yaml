@@ -96,7 +96,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: generate docs
         run: |
-          mvn clean compile
+          mvn clean -B compile
       - name: push docs
         run: |
           cp target/generated-sources/openapi/.openapi-generator/* cicd-doc-repository/
