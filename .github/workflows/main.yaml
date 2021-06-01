@@ -221,6 +221,8 @@ jobs:
         run: ./mvnw -B dependency-check:check
 
   image-scan:
+    needs:
+      - docker
     runs-on: ubuntu-latest
     env:
       ANCHORE_CLI_USER: ${{ secrets.ANCHORE_CLI_USER }}
