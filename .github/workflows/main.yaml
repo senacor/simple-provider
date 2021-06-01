@@ -175,7 +175,7 @@ jobs:
 
   ## Asynchronous checks,  not blocking deployment
 
-  postman-test:
+  ennd-to-end:
     needs:
       - docker
     name: postman test
