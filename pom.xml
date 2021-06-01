@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.senacor.ci</groupId>
 	<artifactId>simple-provider</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>simple-provider</name>
 	<description>Simple Provider</description>
 	<properties>
