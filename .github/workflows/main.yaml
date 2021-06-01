@@ -95,7 +95,7 @@ jobs:
 
       - name: Validate Deployment Manifests
         run: |
-          kubectl apply --dryrun --validate=true -f rendered/
+          kubectl apply --dry-run=client --validate=true -f rendered/
 
   docker:
     needs:
