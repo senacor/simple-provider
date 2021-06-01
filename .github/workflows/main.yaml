@@ -120,6 +120,16 @@ jobs:
       - name: Package Java Application
         run: ./mvnw -B package -DskipUTs -DskipITs
 
+      - name: Extract branch name
+        run: |
+          REF=$GITHUB_HEAD_REF
+          [[ -z $REF ]] && REF=$GITHUB_REF
+          echo "BRANCH_TAG=$(echo $REF | sed -e 's|refs/heads/||g' | sed -e 's|/|_|g')" >> $GITHUB_ENV
+
+      - name: Extract artifact version
+        run: |
+          echo "VERSION_TAG=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+
       - name: "Docker: Set up QEMU"
         uses: docker/setup-qemu-action@v1
 
@@ -140,8 +150,25 @@ jobs:
           context: .
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ${{ env.DOCKER_NAME }}:${{ env.BRANCH_TAG }}
+            ${{ env.DOCKER_NAME }}:${{ env.VERSION_TAG }}
+            ${{ env.DOCKER_NAME }}:${{ env.VERSION_TAG }}-${{ env.BRANCH_TAG }}
           push: ${{ env.PUSH_DOCKER_IMAGE }}
 
+      - name: Create git tag and increment patch version
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git -a tag v${{ env.VERSION_TAG }} -m "[CI commit] Tag with version v${{ env.VERSION_TAG }}"
+          git push tags
+          MASTER_VERSION=$(echo "${{ env.VERSION_TAG }}" | sed -e 's/[^0-9][^0-9]*$//')
+          CURRENT_PATCH_VERSION=$(echo "${MASTER_VERSION}" | sed -e 's/[0-9]*\.//g')
+          NEXT_PATCH_VERSION=$(expr $CURRENT_PATCH_VERSION + 1)
+          NEXT_VERSION=$(echo "${MASTER_VERSION}" | sed -e "s/[0-9][0-9]*\([^0-9]*\)$/${NEXT_PATCH_VERSION}/")
+          mvn versions:set -DgenerateBackupPoms=false -DnewVersion="${NEXT_VERSION}"
+          git add pom.xml
+          git commit -m "[CI commit] Increment version from ${{ env.VERSION_TAG}} to ${NEXT_VERSION}"
+          git push
+          
   ## Continuous deployment to development environment
 
   deploy:
