@@ -198,6 +198,7 @@
 				<!-- /RELEASE_VERSION -->
 				<executions>
 					<execution>
+						<phase>compile</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
