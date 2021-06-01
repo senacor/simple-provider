@@ -101,7 +101,9 @@ jobs:
           cp target/generated-sources/openapi/.openapi-generator/* docs
           git config --global user.email ${{ secrets.EMAIL }}
           git config --global user.name ${{ secrets.USERNAME }}
-          git checkout gh-pages
+          git remote update
+          git fetch
+          git checkout --track origin/gh-pages
           git add docs/*
           git commit docs/* -m " docs updated "
           git push origin gh-pages
