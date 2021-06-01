@@ -99,11 +99,10 @@ jobs:
           mvn clean -B compile
       - name: push docs
         run: |
-          cp target/generated-sources/openapi/.openapi-generator/* cicd-doc-repository/
           cd cicd-doc-repository
           ls
           git clone https://github.com/senacor/cicd-doc-repository.git docs
-          cp ./*.html docs
+          cp ../target/generated-sources/openapi/.openapi-generator/* docs
           cd docs
           git push origin master
 
