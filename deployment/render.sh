@@ -2,7 +2,8 @@
 
 mkdir -p ./rendered/
 
-for f in ./deployment/*.y*ml
+for file in ./deployment/*.y*ml
 do
-  envsubst < $f > "./rendered/$(basename $f)"
+  dest="./rendered/$(basename "$file")"
+  envsubst < "$file" > "$dest"
 done
