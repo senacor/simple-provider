@@ -101,9 +101,8 @@ jobs:
         run: |
           mkdir docs
           cp target/generated-sources/openapi/.openapi-generator/* docs
-          git checkout gh-pages
-          git commit docs/* -m "docs updated "
-
+          git commit docs/* -m " docs updated "
+          git push gh-pages
 
   docker:
     needs:
