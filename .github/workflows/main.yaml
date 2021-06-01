@@ -104,10 +104,10 @@ jobs:
     name: postman test
     runs-on: ubuntu-latest
     services:
-      postrges:
-        image: postgres:13.3
-        ports:
-          - 5432:5432
+      # postgres:
+      #   image: postgres:13.3
+      #   ports:
+      #     - 5432:5432
       test-service:
         image: ghcr.io/${{ github.repository }}:${{ github.sha }}
         ports:
@@ -125,11 +125,13 @@ jobs:
         with:
           node-version: 14
 
-      - run: npm install newman -g
-      - run: |
-          apt-get update
-          apt-get install --yes --no-install-recommends postgresql-client
-      - run: psql -h postgres -U postgres -f ./postman/data.sql
+      # - run: npm install newman -g
+      # - run: |
+      #     apt-get update
+      #     apt-get install --yes --no-install-recommends postgresql-client
+      # - run: psql -h postgres -U postgres -f ./postman/data.sql
+      - name: Build the stack
+        run: docker-compose up -d
       - run: newman run postman/postman_collection.json
 
   deploy:
