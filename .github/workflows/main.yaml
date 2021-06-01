@@ -101,11 +101,12 @@ jobs:
         run: |
           cd cicd-doc-repository
           ls
+          git config --global user.name "My Runner"
+          git config --global user.email "runner@gitlab.example.org"
+          git config --global http.sslverify "false"
           git clone https://github.com/senacor/cicd-doc-repository.git docs
           cp ../target/generated-sources/openapi/.openapi-generator/* docs
           cd docs
-          git config --global user.name "My Runner"
-          git config --global user.email "runner@gitlab.example.org"
           git push origin main
 
 
