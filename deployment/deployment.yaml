@@ -25,10 +25,10 @@ spec:
           resources:
             limits:
               cpu: 500m
-              memory: 250Mi
+              memory: 512Mi
             requests:
               cpu: 200m
-              memory: 150Mi
+              memory: 256Mi
           ports:
             - name: http-app
               containerPort: 8080
