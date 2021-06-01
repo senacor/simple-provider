@@ -7,26 +7,6 @@ import java.time.LocalDateTime
 import javax.persistence.*
 import javax.persistence.EnumType.STRING
 
-/*
-@MappedSuperclass
-@GenericGenerator(
-    name = "idSequence",
-    strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
-    parameters = [Parameter(name = "sequence_name", value = "ID_SEQUENCE")]
-)
-abstract class AbstractVersionedBO {
-
-    @Id
-    @GeneratedValue(generator = "idSequence")
-    @Column(name = "ID")
-    var id: Long = 0
-
-    @Version
-    @Column(name = "VERSION")
-    var version: Int = 0
-}
-*/
-
 @Entity
 @Table(name = "items")
 class Item() {
