@@ -119,7 +119,7 @@ jobs:
           git config --global user.name ${{ secrets.USERNAME }}
           git remote update
           git fetch
-          git checkout --track origin/gh-pages
+          git checkout -f --track origin/gh-pages
           git add docs/*
           git commit docs/* -m " docs updated "
           git push origin gh-pages
