@@ -1,9 +1,6 @@
 name: ci
 
-on:
-  push:
-    branches-ignore:
-      - "**"
+on: push
 
 env:
   GROUP: senacor
@@ -112,7 +109,9 @@ jobs:
         ports:
           - 5432:5432
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: secret
+          POSTGRES_DB: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -127,6 +126,12 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 14
+
+      - name: Fill database
+        run: psql -f data.sql postgresql://postgres:secret@localhost:5432/postgres
+        working-directory: postman
+        env:
+          POSTGRES_PASSWORD: secret
 
       - run: npm install newman -g
 
