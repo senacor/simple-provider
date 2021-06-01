@@ -12,7 +12,6 @@ env:
 
   POSTGRES_VERSION: "13.3"
 jobs:
-
   ## Synchronous code quality checks, potentially failing build
 
   check-deployment-scripts:
@@ -88,9 +87,9 @@ jobs:
 
       - name: Get Kubernetes Credentials
         run: |
-           aws eks update-kubeconfig \
-             --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
-             --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
+          aws eks update-kubeconfig \
+            --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
+            --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
 
       - name: Render Manifests
         run: deployment/render.sh
@@ -161,9 +160,9 @@ jobs:
 
       - name: Get Kubernetes Credentials
         run: |
-           aws eks update-kubeconfig \
-             --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
-             --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
+          aws eks update-kubeconfig \
+            --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
+            --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
 
       # TODO: this is a duplicate. In Gitlab-CI it could reuse artifacts from `validate-k8s-manifests`
       # Find out how to replicate/emulate artifacts in Github Actions
@@ -176,12 +175,25 @@ jobs:
 
   ## Asynchronous checks,  not blocking deployment
 
-  postman-test:
+  ennd-to-end:
     needs:
       - docker
     name: postman test
     runs-on: ubuntu-latest
     services:
+      postgres:
+        image: postgres:13.3
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       test-service:
         image: ghcr.io/${{ github.repository }}:${{ github.sha }}
         ports:
@@ -193,6 +205,12 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 14
+
+      - name: Fill database
+        run: psql -f data.sql postgresql://postgres:secret@localhost:5432/postgres
+        working-directory: postman
+        env:
+          POSTGRES_PASSWORD: secret
 
       - name: Install newman runner
         run: npm install newman -g
