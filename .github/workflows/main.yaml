@@ -100,7 +100,7 @@ jobs:
       - name: push docs
         run: |
           mkdir docs
-          cp ../target/generated-sources/openapi/.openapi-generator/* docs
+          cp target/generated-sources/openapi/.openapi-generator/* docs
           git chechout gh-pages
           git commit docs/* -m "docs updated "
 
