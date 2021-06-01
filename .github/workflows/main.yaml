@@ -212,10 +212,6 @@ jobs:
         env:
           POSTGRES_PASSWORD: secret
 
-      - run: npm install newman -g
-
-      - run: newman run postman/postman_collection.json
-
       - name: Install newman runner
         run: npm install newman -g
 
