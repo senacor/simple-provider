@@ -1,9 +1,9 @@
 version: "3.7"
 services:
-  # application:
-  #   build: .
-  #   ports:
-  #     - 8080:8080
+  application:
+    build: .
+    ports:
+      - 8080:8080
 
   postgres:
     image: postgres:13.3
