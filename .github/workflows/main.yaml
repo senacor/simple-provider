@@ -238,6 +238,32 @@ jobs:
       - name: Execute dependency check
         run: ./mvnw -B dependency-check:check
 
+  image-scan:
+    needs:
+      - docker
+    runs-on: ubuntu-latest
+    env:
+      ANCHORE_CLI_USER: ${{ secrets.ANCHORE_CLI_USER }}
+      ANCHORE_CLI_USER_PASSWORD: ${{ secrets.ANCHORE_CLI_USER_PASSWORD }}
+      ANCHORE_HOST: ${{ secrets.ANCHORE_HOST }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install anchorecli
+        run: |
+          python -m pip install --upgrade pip
+          pip install anchorecli
+      - name: Start scan of image
+        run: anchore-cli --u ${{ env.ANCHORE_CLI_USER }} --p ${{ env.ANCHORE_CLI_USER_PASSWORD }} --url ${{ env.ANCHORE_HOST }} image add ghcr.io/${{ github.repository }}:${{ github.sha }}
+      - name: Wait until scan of image is finished
+        run: anchore-cli --u ${{ env.ANCHORE_CLI_USER }} --p ${{ env.ANCHORE_CLI_USER_PASSWORD }} --url ${{ env.ANCHORE_HOST }} image wait ghcr.io/${{ github.repository }}:${{ github.sha }}
+      - name: Check result of image scan
+        run: anchore-cli --u ${{ env.ANCHORE_CLI_USER }} --p ${{ env.ANCHORE_CLI_USER_PASSWORD }} --url ${{ env.ANCHORE_HOST }} evaluate check ghcr.io/${{ github.repository }}:${{ github.sha }}
+
   sonar-scan:
     runs-on: ubuntu-latest
     env:
