@@ -77,9 +77,7 @@ jobs:
       - name: sonar static analiysis
         continue-on-error: true
         run: |
-          curl -sSL "https://nodejs.org/download/release/v13.2.0/${{ env.NODE_RELEASE }}.tar.gz" | tar xz
           mvn verify sonar:sonar  \
-          -Dsonar.nodejs.executable=${{ env.NODE_RELEASE }}/bin/node \
           -Dsonar.host.url=${{ env.SONAR_URL }} -Dsonar.login=${{ env.SONAR_LOGIN }} \
           -Dsonar.javascript.lcov.reportPaths=target/js-coverage/lcov.info \
           -Dsonar.sources=${{ env.SONAR_SOURCES }} \
@@ -105,7 +103,7 @@ jobs:
           git config --global user.name ${{ secrets.USERNAME }}
           git add docs/*
           git commit docs/* -m " docs updated "
-          git push gh-pages
+          git push origin gh-pages
 
   docker:
     needs:
