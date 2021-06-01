@@ -6,7 +6,7 @@ services:
       - 8080:8080
 
   postgres:
-    image: eu.gcr.io/deuba-gcr/public-images/postgres:12-alpine
+    image: postgres:13.3
     restart: always
     environment:
       - POSTGRES_USER=postgres
