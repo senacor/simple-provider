@@ -239,12 +239,12 @@ jobs:
           image add ghcr.io/${{ github.repository }}:${{ github.sha }}
       - name: Wait until scan of image is finished
         run: anchore-cli --u ${{ secrets.ANCHORE_CLI_USER }} --p ${{ secrets.ANCHORE_CLI_USER_PASSWORD }} \
-        --url ${{ secrets.ANCHORE_HOST } \
-        image wait ghcr.io/${{ github.repository }}:${{ github.sha }}
+          --url ${{ secrets.ANCHORE_HOST } \
+          image wait ghcr.io/${{ github.repository }}:${{ github.sha }}
       - name: Check result of image scan
         run: anchore-cli --u ${{ secrets.ANCHORE_CLI_USER }} --p ${{ secrets.ANCHORE_CLI_USER_PASSWORD }} \
-        --url ${{ secrets.ANCHORE_HOST } \
-        image evaluate check ghcr.io/${{ github.repository }}:${{ github.sha }}
+          --url ${{ secrets.ANCHORE_HOST } \
+          image evaluate check ghcr.io/${{ github.repository }}:${{ github.sha }}
 
   sonar-scan:
     runs-on: ubuntu-latest
