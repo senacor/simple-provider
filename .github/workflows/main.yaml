@@ -101,6 +101,8 @@ jobs:
         run: |
           mkdir docs
           cp target/generated-sources/openapi/.openapi-generator/* docs
+          git config --global user.email ${{ secrets.EMAIL }}
+          git config --global user.name ${{ secrets.USERNAME }}
           git add docs/*
           git commit docs/* -m " docs updated "
           git push gh-pages
