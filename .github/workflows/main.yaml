@@ -100,6 +100,9 @@ jobs:
       - name: push docs
         run: |
           cp target/generated-sources/openapi/.openapi-generator/* cicd-doc-repository/
+          cd cicd-doc-repository
+          git status
+
 
   docker:
     needs:
