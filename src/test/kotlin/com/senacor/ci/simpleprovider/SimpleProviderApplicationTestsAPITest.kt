@@ -1,16 +1,22 @@
 package com.senacor.ci.simpleprovider
 
-import com.senacor.ci.simpleprovider.bo.Item
 import io.restassured.RestAssured
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
-import java.math.BigDecimal
 
 //@SpringBootTest
 @IntegrationTest
 class SimpleProviderApplicationTestsAPITest {
+
+  @LocalServerPort
+  private var port: Int = 0
+
+  @BeforeEach
+  fun setup() {
+    RestAssured.port = port
+  }
 
 	@Test
 	fun `HTTP GET to resource items results in HTTP200`() {
