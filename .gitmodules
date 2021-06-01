@@ -1,0 +1,3 @@
+[submodule "cicd-doc-repository"]
+	path = cicd-doc-repository
+	url = https://github.com/senacor/cicd-doc-repository.git
