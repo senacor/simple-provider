@@ -101,7 +101,11 @@ jobs:
         run: |
           cp target/generated-sources/openapi/.openapi-generator/* cicd-doc-repository/
           cd cicd-doc-repository
-          git status
+          ls
+          git clone https://github.com/senacor/cicd-doc-repository.git docs
+          cp ./* docs
+          cd docs
+          git push origin master
 
 
   docker:
