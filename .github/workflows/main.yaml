@@ -130,8 +130,6 @@ jobs:
       #     apt-get update
       #     apt-get install --yes --no-install-recommends postgresql-client
       # - run: psql -h postgres -U postgres -f ./postman/data.sql
-      - name: Build the stack
-        run: docker-compose up -d
       - run: newman run postman/postman_collection.json
 
   deploy:
