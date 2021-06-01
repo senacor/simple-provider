@@ -238,17 +238,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install anchorecli
       - name: Start scan of image
-        run: anchore-cli --u ${{ env.ANCHORE_CLI_USER }} --p ${{ env.ANCHORE_CLI_USER_PASSWORD }} \
-          --url ${{ env.ANCHORE_HOST }} \
-          image add ghcr.io/${{ github.repository }}:${{ github.sha }}
+        run: anchore-cli --u ${{ env.ANCHORE_CLI_USER }} --p ${{ env.ANCHORE_CLI_USER_PASSWORD }} --url ${{ env.ANCHORE_HOST }} image add ghcr.io/${{ github.repository }}:${{ github.sha }}
       - name: Wait until scan of image is finished
-        run: anchore-cli --u ${{ env.ANCHORE_CLI_USER }} --p ${{ env.ANCHORE_CLI_USER_PASSWORD }} \
-          --url ${{ env.ANCHORE_HOST }} \
-          image wait ghcr.io/${{ github.repository }}:${{ github.sha }}
+        run: anchore-cli --u ${{ env.ANCHORE_CLI_USER }} --p ${{ env.ANCHORE_CLI_USER_PASSWORD }} --url ${{ env.ANCHORE_HOST }} image wait ghcr.io/${{ github.repository }}:${{ github.sha }}
       - name: Check result of image scan
-        run: anchore-cli --u ${{ env.ANCHORE_CLI_USER }} --p ${{ env.ANCHORE_CLI_USER_PASSWORD }} \
-          --url ${{ env.ANCHORE_HOST }} \
-          image evaluate check ghcr.io/${{ github.repository }}:${{ github.sha }}
+        run: anchore-cli --u ${{ env.ANCHORE_CLI_USER }} --p ${{ env.ANCHORE_CLI_USER_PASSWORD }} --url ${{ env.ANCHORE_HOST }} evaluate check ghcr.io/${{ github.repository }}:${{ github.sha }}
 
   sonar-scan:
     runs-on: ubuntu-latest
