@@ -1,0 +1,39 @@
+name: simple
+
+on: push
+
+jobs:
+  postman-test:
+    needs:
+      - docker
+    name: postman test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13.3
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: secret
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      test-service:
+        image: ghcr.io/senacor/simple-provider:2d892d2cc838d4522ec11f3294a82eac320bd35a
+        ports:
+          - 8080:8080
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - run: npm install newman -g
+      - run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends postgresql-client
+      - run: psql -h postgres -U postgres -f ./postman/data.sql
+
+      - run: newman run postman/postman_collection.json

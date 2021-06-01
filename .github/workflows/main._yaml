@@ -126,10 +126,6 @@ jobs:
           node-version: 14
 
       - run: npm install newman -g
-      - run: |
-          apt-get update
-          apt-get install --yes postgresql-client
-      - run: psql -h postgres -U postgres -f ./postman/data.sql
 
       - run: newman run postman/postman_collection.json
 
