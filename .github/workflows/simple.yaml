@@ -32,6 +32,9 @@ jobs:
       - run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends postgresql-client
-      - run: psql -h localhost:5432 -U postgres -f ./postman/data.sql
+      - name: Fill database
+        run: psql -h postgres -U postgres -f ./postman/data.sql
+        env:
+          PGPASSWORD: secret
 
       - run: newman run postman/postman_collection.json
