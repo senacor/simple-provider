@@ -101,6 +101,7 @@ jobs:
         run: |
           mkdir docs
           cp target/generated-sources/openapi/.openapi-generator/* docs
+          git add docs/*
           git commit docs/* -m " docs updated "
           git push gh-pages
 
