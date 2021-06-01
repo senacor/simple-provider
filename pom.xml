@@ -90,6 +90,18 @@
 			<artifactId>springdoc-openapi-kotlin</artifactId>
 			<version>1.4.3</version>
 		</dependency>
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>1.5.21</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.eclipse.microprofile.openapi/microprofile-openapi-api -->
+		<dependency>
+			<groupId>org.eclipse.microprofile.openapi</groupId>
+			<artifactId>microprofile-openapi-api</artifactId>
+			<version>2.0</version>
+		</dependency>
+
 		<!-- Explicitely needed to run UTs from IntelliJ IDE -->
 		<dependency>
 			<groupId>org.junit.platform</groupId>
