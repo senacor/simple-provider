@@ -65,7 +65,6 @@ jobs:
 
   quality-gates:
     runs-on: ubuntu-latest
-    on: [pull_request]
     env:
       SONAR_TESTS: src/test/kotlin
       SONAR_SOURCES: src/main/kotlin
