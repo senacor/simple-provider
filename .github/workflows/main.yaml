@@ -13,7 +13,9 @@ env:
   POSTGRES_VERSION: "13.3"
 jobs:
 
-  shellcheck-deployment:
+  ## Synchronous code quality checks, potentially failing build
+
+  check-deployment-scripts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,7 +23,7 @@ jobs:
       - name: Check Deployment Scripts
         run: shellcheck deployment/*.sh
 
-  hadolint:
+  check-dockerfile:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -31,7 +33,7 @@ jobs:
         with:
           dockerfile: Dockerfile
 
-  test:
+  unit-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -48,8 +50,8 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build + verify
-        run: ./mvnw -B verify
+      - name: Execute Unit Tests
+        run: ./mvnw -B test
 
   integration-test:
     runs-on: ubuntu-latest
@@ -68,12 +70,12 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Run Integration tests
-        run: ./mvnw integration-test
+      - name: Execute Integration tests
+        run: ./mvnw -B -DskipUTs integration-test
 
   validate-k8s-manifests:
     needs:
-      - shellcheck-deployment
+      - check-deployment-scripts
     runs-on: ubuntu-latest
     env:
       AWS_DEFAULT_REGION: eu-west-2
@@ -97,10 +99,12 @@ jobs:
         run: |
           kubectl apply --dry-run=client --validate=true -f rendered/
 
+  ## Main artefact creation
+
   docker:
     needs:
-      - hadolint
-      - test
+      - check-dockerfile
+      - unit-test
       - integration-test
     runs-on: ubuntu-latest
     env:
@@ -114,7 +118,7 @@ jobs:
           java-version: 11
 
       - name: Package Java Application
-        run: ./mvnw -B package -DskipTests -DskipITs
+        run: ./mvnw -B package -DskipUTs -DskipITs
 
       - name: "Docker: Set up QEMU"
         uses: docker/setup-qemu-action@v1
@@ -137,6 +141,40 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.sha }}
           push: ${{ env.PUSH_DOCKER_IMAGE }}
+
+  ## Continuous deployment to development environment
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - validate-k8s-manifests
+      - docker
+    runs-on: ubuntu-latest
+    env:
+      AWS_DEFAULT_REGION: eu-west-2
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get Kubernetes Credentials
+        run: |
+           aws eks update-kubeconfig \
+             --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
+             --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
+
+      # TODO: this is a duplicate. In Gitlab-CI it could reuse artifacts from `validate-k8s-manifests`
+      # Find out how to replicate/emulate artifacts in Github Actions
+      - name: Render Manifests
+        run: deployment/render.sh
+
+      - name: Deploy Application
+        run: |
+          kubectl apply -f rendered/
+
+  ## Asynchronous checks,  not blocking deployment
 
   postman-test:
     needs:
@@ -162,36 +200,27 @@ jobs:
       - name: Execute Postman Collection
         run: newman run postman/postman_collection.json
 
-  deploy:
-    if: github.ref == 'refs/heads/main'
-    needs:
-      - validate-k8s-manifests
-      - docker
+  dependency-scan:
     runs-on: ubuntu-latest
-    env:
-      AWS_DEFAULT_REGION: eu-west-2
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
     steps:
       - uses: actions/checkout@v2
 
-      - name: Get Kubernetes Credentials
-        run: |
-           aws eks update-kubeconfig \
-             --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
-             --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
 
-      # TODO: this is a duplicate, could reuse artifacts from `validate-k8s-manifests`
-      - name: Render Manifests
-        run: deployment/render.sh
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
-      - name: Deploy Application
-        run: |
-          kubectl apply -f rendered/
+      - name: Execute dependency check
+        run: ./mvnw -B dependency-check:check
 
-  quality-gates:
+  sonar-scan:
     runs-on: ubuntu-latest
     env:
       SONAR_TESTS: src/test/kotlin
