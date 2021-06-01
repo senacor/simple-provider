@@ -1,18 +1,14 @@
 package com.senacor.ci.simpleprovider.search
 
-import com.senacor.ci.simpleprovider.model.Item
-import java.math.BigDecimal
+import com.senacor.ci.simpleprovider.bo.Item
+import com.senacor.ci.simpleprovider.bo.ItemRepository
 
-class SearchService {
+class SearchService(private val repo: ItemRepository) {
 
-    companion object {
-        val items = listOf(
-            Item("Screwdriver", BigDecimal(2), 4),
-            Item("Gear", BigDecimal(4), 4),
-            Item("Blade", BigDecimal(8), 4)
-        )
+    fun search(name: String?): List<Item> {
+        if(name === null) {
+            return repo.findAll();
+        }
+        return repo.findAllByNameStartsWith(name)
     }
-
-    fun search(name: String? = null) =
-        name?.let { items.filter { it.name.contains(name, true) } } ?: items
 }

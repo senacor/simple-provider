@@ -9,9 +9,21 @@ env:
   DOCKER_NAME: ghcr.io/${{ github.repository }}
   DOCKER_REGISTRY: ghcr.io
   REPO: simple-provider
+
+  POSTGRES_VERSION: "13.3"
 jobs:
 
-  hadolint:
+  ## Synchronous code quality checks, potentially failing build
+
+  check-deployment-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check Deployment Scripts
+        run: shellcheck deployment/*.sh
+
+  check-dockerfile:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,7 +33,7 @@ jobs:
         with:
           dockerfile: Dockerfile
 
-  test:
+  unit-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -38,8 +50,8 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build + verify
-        run: mvn -B verify
+      - name: Execute Unit Tests
+        run: ./mvnw -B test
 
   integration-test:
     runs-on: ubuntu-latest
@@ -58,37 +70,41 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Run Integration tests
-        run: mvn integration-test
+      - name: Execute Integration tests
+        run: ./mvnw -B -DskipUTs integration-test
 
-  sonarqube:
+  validate-k8s-manifests:
+    needs:
+      - check-deployment-scripts
     runs-on: ubuntu-latest
     env:
-      SONAR_TESTS: src/test/kotlin
-      SONAR_SOURCES: src/main/kotlin
-      SONAR_EXCLUSIONS: "**/model/**"
-      SONAR_URL: ${{ secrets.SONAR_URL }}
-      SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
-      COMMIT_BRANCH: ${{ github.ref }}
-      COMMIT_SHA: ${{ github.sha }}
-      NODE_RELEASE: node-v13.2.0-linux-x64
+      AWS_DEFAULT_REGION: eu-west-2
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
     steps:
       - uses: actions/checkout@v2
-      - name: sonar static analiysis
-        continue-on-error: true
+
+      - name: Get Kubernetes Credentials
         run: |
-          mvn verify sonar:sonar  \
-          -Dsonar.host.url=${{ env.SONAR_URL }} -Dsonar.login=${{ env.SONAR_LOGIN }} \
-          -Dsonar.javascript.lcov.reportPaths=target/js-coverage/lcov.info \
-          -Dsonar.sources=${{ env.SONAR_SOURCES }} \
-          -Dsonar.projectKey=simple-provide \
-          -Dsonar.tests=${{ env.SONAR_TESTS }} \
-          -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }} \
-          -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html \
-          -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml \
-          -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json
+           aws eks update-kubeconfig \
+             --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
+             --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
+
+      - name: Render Manifests
+        run: deployment/render.sh
+
+      - name: Validate Deployment Manifests
+        run: |
+          kubectl apply --dry-run=client --validate=true -f rendered/
+
+  ## Main artefact creation
 
   generate-docs:
+    needs:
+      - unit-test
+      - integration-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -110,18 +126,22 @@ jobs:
 
   docker:
     needs:
-      - hadolint
-      - test
+      - check-dockerfile
+      - unit-test
       - integration-test
-      - sonarqube
     runs-on: ubuntu-latest
     env:
       PUSH_DOCKER_IMAGE: true
     steps:
       - uses: actions/checkout@v2
 
-      - name: Package
-        run: mvn -B package -DskipTests -DskipITs
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Package Java Application
+        run: ./mvnw -B package -DskipUTs -DskipITs
 
       - name: "Docker: Set up QEMU"
         uses: docker/setup-qemu-action@v1
@@ -145,6 +165,40 @@ jobs:
             ghcr.io/${{ github.repository }}:${{ github.sha }}
           push: ${{ env.PUSH_DOCKER_IMAGE }}
 
+  ## Continuous deployment to development environment
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - validate-k8s-manifests
+      - docker
+    runs-on: ubuntu-latest
+    env:
+      AWS_DEFAULT_REGION: eu-west-2
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get Kubernetes Credentials
+        run: |
+           aws eks update-kubeconfig \
+             --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
+             --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
+
+      # TODO: this is a duplicate. In Gitlab-CI it could reuse artifacts from `validate-k8s-manifests`
+      # Find out how to replicate/emulate artifacts in Github Actions
+      - name: Render Manifests
+        run: deployment/render.sh
+
+      - name: Deploy Application
+        run: |
+          kubectl apply -f rendered/
+
+  ## Asynchronous checks,  not blocking deployment
+
   postman-test:
     needs:
       - docker
@@ -157,30 +211,63 @@ jobs:
           - 8080:8080
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+
+      - name: Set up NodeJS runtime
+        uses: actions/setup-node@v2
         with:
           node-version: 14
-      - run: npm install newman -g
-      - run: newman run postman/postman_collection.json
 
-  deploy:
-    needs:
-      - docker
+      - name: Install newman runner
+        run: npm install newman -g
+
+      - name: Execute Postman Collection
+        run: newman run postman/postman_collection.json
+
+  dependency-scan:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    env:
-      AWS_DEFAULT_REGION: eu-west-2
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v2
 
-      - name: render
-        run: deployment/render.sh
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
 
-      - name: deploy
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Execute dependency check
+        run: ./mvnw -B dependency-check:check
+
+  sonar-scan:
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TESTS: src/test/kotlin
+      SONAR_SOURCES: src/main/kotlin
+      SONAR_EXCLUSIONS: "**/model/**"
+      SONAR_URL: ${{ secrets.SONAR_URL }}
+      SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
+      COMMIT_BRANCH: ${{ github.ref }}
+      COMMIT_SHA: ${{ github.sha }}
+      NODE_RELEASE: node-v13.2.0-linux-x64
+    steps:
+      - uses: actions/checkout@v2
+      - name: sonar static analiysis
+        continue-on-error: true
         run: |
-           aws eks update-kubeconfig \
-             --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
-             --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
-           kubectl apply -f rendered/
+          curl -sSL "https://nodejs.org/download/release/v13.2.0/${{ env.NODE_RELEASE }}.tar.gz" | tar xz
+          ./mvnw verify sonar:sonar  \
+          -Dsonar.nodejs.executable=${{ env.NODE_RELEASE }}/bin/node \
+          -Dsonar.host.url=${{ env.SONAR_URL }} -Dsonar.login=${{ env.SONAR_LOGIN }} \
+          -Dsonar.javascript.lcov.reportPaths=target/js-coverage/lcov.info \
+          -Dsonar.sources=${{ env.SONAR_SOURCES }} \
+          -Dsonar.projectKey=simple-provide \
+          -Dsonar.tests=${{ env.SONAR_TESTS }} \
+          -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }} \
+          -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html \
+          -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml \
+          -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json
