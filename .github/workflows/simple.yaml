@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Fill database
         run: psql -f data.sql postgresql://postgres:secret@localhost:5432/postgres
-        working-directory: postgres
+        working-directory: postman
         env:
           POSTGRES_PASSWORD: secret
 
