@@ -150,9 +150,6 @@ jobs:
           -Dsonar.projectKey=simple-provide \
           -Dsonar.tests=${{ env.SONAR_TESTS }} \
           -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }} \
-          -Dsonar.pullrequest.key=${{ github.sha }} \
-          -Dsonar.pullrequest.branch=${{ env.COMMIT_BRANCH }} \
-          -Dsonar.pullrequest.basee=master \
           -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html \
           -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml \
           -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json
