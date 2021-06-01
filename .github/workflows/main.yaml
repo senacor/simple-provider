@@ -8,7 +8,7 @@ env:
   SERVICE_NAME: simple-provider
   DOCKER_NAME: ghcr.io/${{ github.repository }}
   DOCKER_REGISTRY: ghcr.io
-
+  REPO: simple-provider
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -124,3 +124,32 @@ jobs:
              --name ${{ secrets.KUBERNETES_CLUSTER_NAME }} \
              --role-arn ${{ secrets.KUBERNETES_CLUSTER_DEPLOY_ROLE }}
            kubectl apply -f rendered/
+
+  quality-gates:
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TESTS: src/test/kotlin
+      SONAR_SOURCES: src/main/kotlin
+      SONAR_EXCLUSIONS: "**/model/**"
+      SONAR_URL: ${{ secrets.SONAR_URL }}
+      SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
+      COMMIT_BRANCH: ${{ github.ref }}
+      COMMIT_SHA: ${{ github.sha }}
+      NODE_RELEASE: node-v13.2.0-linux-x64
+    steps:
+      - uses: actions/checkout@v2
+      - name: sonar static analiysis
+        continue-on-error: true
+        run: |
+          curl -sSL "https://nodejs.org/download/release/v13.2.0/${{ env.NODE_RELEASE }}.tar.gz" | tar xz
+          mvn verify sonar:sonar  \
+          -Dsonar.nodejs.executable=${{ env.NODE_RELEASE }}/bin/node \
+          -Dsonar.host.url=${{ env.SONAR_URL }} -Dsonar.login=${{ env.SONAR_LOGIN }} \
+          -Dsonar.javascript.lcov.reportPaths=target/js-coverage/lcov.info \
+          -Dsonar.sources=${{ env.SONAR_SOURCES }} \
+          -Dsonar.projectKey=simple-provide \
+          -Dsonar.tests=${{ env.SONAR_TESTS }} \
+          -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }} \
+          -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html \
+          -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml \
+          -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json
