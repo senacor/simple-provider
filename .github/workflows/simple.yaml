@@ -4,8 +4,6 @@ on: push
 
 jobs:
   postman-test:
-    needs:
-      - docker
     name: postman test
     runs-on: ubuntu-latest
     services:
