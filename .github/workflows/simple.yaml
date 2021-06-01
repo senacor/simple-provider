@@ -3,8 +3,8 @@ name: simple
 on: push
 
 jobs:
-  postman-test:
-    name: postman test
+  end-to-end:
+    name: End to end test of the provider
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -27,7 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Fill database
-        run: psql -f postgres/data.sql postgresql://postgres:secret@localhost:5432/postgres
+        run: psql -f data.sql postgresql://postgres:secret@localhost:5432/postgres
+        working-directory: postgres
         env:
           POSTGRES_PASSWORD: secret
 
