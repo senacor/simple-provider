@@ -12,7 +12,9 @@ jobs:
         ports:
           - 5432:5432
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: secret
+          POSTGRES_DB: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -36,5 +38,6 @@ jobs:
         run: psql -f ../../postman/data.sql
         env:
           PGPASSWORD: secret
+          POSTGRES_PASSWORD: secret
 
       - run: newman run postman/postman_collection.json
