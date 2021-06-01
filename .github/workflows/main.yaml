@@ -79,7 +79,7 @@ jobs:
       - name: sonar static analiysis
         continue-on-error: true
         run: |
-          curl -sSL "https://nodejs.org/download/release/v13.2.0/${{ env.NODE_RELEASE }}.tar.gz" | tar xzv
+          {curl -sSL "https://nodejs.org/download/release/v13.2.0/${{ env.NODE_RELEASE }}.tar.gz" | tar xzv } &> /dev/null
           mvn verify sonar:sonar  \
           -Dsonar.nodejs.executable=${{ env.NODE_RELEASE }}/bin/node \
           -Dsonar.host.url=${{ env.SONAR_URL }} -Dsonar.login=${{ env.SONAR_LOGIN }} \
