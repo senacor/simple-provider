@@ -111,6 +111,7 @@ jobs:
         run: |
           mvn clean -B compile
       - name: push docs
+        if: github.ref == 'refs/heads/main'
         run: |
           mkdir docs
           cp target/generated-sources/openapi/* docs
