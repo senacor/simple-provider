@@ -108,6 +108,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: generate docs
+        if: github.ref == 'refs/heads/main'
         run: |
           mvn clean -B compile
       - name: push docs
