@@ -325,4 +325,26 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<profile>
+			<id>sonar</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<sonar.host.url>${env.SONAR_URL}</sonar.host.url>
+				<sonar.sources>${env.SONAR_SOURCES}</sonar.sources>
+				<sonar.tests>${env.SONAR_SOURCES}</sonar.tests>
+				<sonar.exclusions>${env.SONAR_EXCLUSIONS}</sonar.exclusions>
+				<sonar.projectKey>simple-provide</sonar.projectKey>
+				<sonar.javascript.lcov.reportPaths>target/js-coverage/lcov.info</sonar.javascript.lcov.reportPaths>
+				<sonar.dependencyCheck.htmlReportPath>target/dependency-check-report.html</sonar.dependencyCheck.htmlReportPath>
+				<sonar.dependencyCheck.xmlReportPath>target/dependency-check-report.xml</sonar.dependencyCheck.xmlReportPath>
+				<sonar.dependencyCheck.jsonReportPath>target/dependency-check-report.json</sonar.dependencyCheck.jsonReportPath>
+
+
+			</properties>
+		</profile>
+	</profiles>
+
 </project>
