@@ -100,6 +100,29 @@ jobs:
 
   ## Main artefact creation
 
+  generate-docs:
+    needs:
+      - unit-test
+      - integration-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: generate docs
+        run: |
+          mvn clean -B compile
+      - name: push docs
+        run: |
+          mkdir docs
+          cp target/generated-sources/openapi/* docs
+          git config --global user.email ${{ secrets.EMAIL }}
+          git config --global user.name ${{ secrets.USERNAME }}
+          git remote update
+          git fetch
+          git checkout -f --track origin/gh-pages
+          git add docs/*
+          git commit docs/* -m " docs updated " | true
+          git push origin gh-pages
+
   docker:
     needs:
       - check-dockerfile
@@ -216,6 +239,7 @@ jobs:
         run: npm install newman -g
 
       - name: Execute Postman Collection
+        continue-on-error: true
         run: newman run postman/postman_collection.json
 
   dependency-scan:
@@ -272,23 +296,9 @@ jobs:
       SONAR_EXCLUSIONS: "**/model/**"
       SONAR_URL: ${{ secrets.SONAR_URL }}
       SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
-      COMMIT_BRANCH: ${{ github.ref }}
-      COMMIT_SHA: ${{ github.sha }}
-      NODE_RELEASE: node-v13.2.0-linux-x64
     steps:
       - uses: actions/checkout@v2
       - name: sonar static analiysis
         continue-on-error: true
         run: |
-          curl -sSL "https://nodejs.org/download/release/v13.2.0/${{ env.NODE_RELEASE }}.tar.gz" | tar xz
-          ./mvnw verify sonar:sonar  \
-          -Dsonar.nodejs.executable=${{ env.NODE_RELEASE }}/bin/node \
-          -Dsonar.host.url=${{ env.SONAR_URL }} -Dsonar.login=${{ env.SONAR_LOGIN }} \
-          -Dsonar.javascript.lcov.reportPaths=target/js-coverage/lcov.info \
-          -Dsonar.sources=${{ env.SONAR_SOURCES }} \
-          -Dsonar.projectKey=simple-provide \
-          -Dsonar.tests=${{ env.SONAR_TESTS }} \
-          -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }} \
-          -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html \
-          -Dsonar.dependencyCheck.xmlReportPath=target/dependency-check-report.xml \
-          -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json
+          ./mvnw sonar:sonar -Dsonar.login=${{ env.SONAR_LOGIN }}

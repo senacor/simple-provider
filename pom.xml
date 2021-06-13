@@ -93,6 +93,34 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- OPEN API-->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-data-rest</artifactId>
+			<version>1.4.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.4.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-kotlin</artifactId>
+			<version>1.4.3</version>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>1.5.21</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.eclipse.microprofile.openapi/microprofile-openapi-api -->
+		<dependency>
+			<groupId>org.eclipse.microprofile.openapi</groupId>
+			<artifactId>microprofile-openapi-api</artifactId>
+			<version>2.0</version>
+		</dependency>
+
 		<!-- Explicitely needed to run UTs from IntelliJ IDE -->
 		<dependency>
 			<groupId>org.junit.platform</groupId>
@@ -187,6 +215,25 @@
 		<finalName>${project.groupId}.${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<!-- RELEASE_VERSION -->
+				<version>5.1.0</version>
+				<!-- /RELEASE_VERSION -->
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/api.yaml</inputSpec>
+							<generatorName>html</generatorName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.22.2</version>
@@ -265,7 +312,7 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>6.2.0</version>
 				<configuration>
-					<failBuildOnCVSS>8</failBuildOnCVSS>
+					<failBuildOnCVSS>10</failBuildOnCVSS>
 				</configuration>
 				<executions>
 					<execution>
@@ -277,5 +324,27 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>sonar</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<sonar.host.url>${env.SONAR_URL}</sonar.host.url>
+				<sonar.sources>${env.SONAR_SOURCES}</sonar.sources>
+				<sonar.tests>${env.SONAR_TESTS}</sonar.tests>
+				<sonar.exclusions>${env.SONAR_EXCLUSIONS}</sonar.exclusions>
+				<sonar.projectKey>simple-provide</sonar.projectKey>
+				<sonar.javascript.lcov.reportPaths>target/js-coverage/lcov.info</sonar.javascript.lcov.reportPaths>
+				<sonar.dependencyCheck.htmlReportPath>target/dependency-check-report.html</sonar.dependencyCheck.htmlReportPath>
+				<sonar.dependencyCheck.xmlReportPath>target/dependency-check-report.xml</sonar.dependencyCheck.xmlReportPath>
+				<sonar.dependencyCheck.jsonReportPath>target/dependency-check-report.json</sonar.dependencyCheck.jsonReportPath>
+
+
+			</properties>
+		</profile>
+	</profiles>
 
 </project>
